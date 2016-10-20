@@ -17,6 +17,8 @@ def deleteMatches():
     conn = connect()
     cur = conn.cursor()
     cur.execute("DELETE FROM matches;")
+    cur.execute("UPDATE standings "
+                "SET wins = 0, matches = 0;")
     conn.commit()
     conn.close()
 
@@ -80,7 +82,7 @@ def playerStandings():
     cur = conn.cursor()
     query = """
         SELECT players.id, players.name,
-               standings.wins, standings.loses
+               standings.wins, standings.matches
         FROM players, standings
         WHERE players.id = standings.id;
         """
@@ -99,6 +101,18 @@ def reportMatch(winner, loser):
       winner:  the id number of the player who won
       loser:  the id number of the player who lost
     """
+    conn = connect()
+    cur = conn.cursor()
+    cur.execute("INSERT INTO matches (winner, loser) "
+                "VALUES (%s,%s);", (winner, loser))
+    cur.execute("UPDATE standings "
+                "SET wins=wins + 1 "
+                "WHERE id = %s;", (winner,))
+    cur.execute("UPDATE standings "
+                "SET matches = matches + 1 "
+                "WHERE id = %s or id = %s;", (winner, loser))
+    conn.commit()
+    conn.close()
 
 
 def swissPairings():
@@ -116,3 +130,18 @@ def swissPairings():
         id2: the second player's unique id
         name2: the second player's name
     """
+    conn = connect()
+    cur = conn.cursor()
+    cur.execute("select players.id, players.name "
+                "FROM players join standings "
+                "ON players.id = standings.id "
+                "ORDER BY wins desc;")
+    rows = []
+    for row in cur:
+        rows.append(row[0])
+        rows.append(row[1])
+    iteration = iter(rows)
+    results = zip(iteration, iteration, iteration, iteration)
+    conn.close()
+    print results
+    return results
