@@ -55,12 +55,12 @@ def registerPlayer(name):
     conn = connect()
     cur = conn.cursor()
     cur.execute("INSERT INTO players (name)"
-                "VALUES (%s);", (name,))
+                "VALUES (%s);", (name,))  # Add player to players table
     conn.commit()
     cur.execute("INSERT INTO standings "
                 "VALUES ((SELECT id FROM players "
-                         "WHERE name like %s), 0, 0);",
-                (name,))
+                "WHERE name like %s), 0, 0);",
+                (name,))  # Add player to standings table
     conn.commit()
     conn.close()
 
@@ -85,11 +85,11 @@ def playerStandings():
                standings.wins, standings.matches
         FROM players, standings
         WHERE players.id = standings.id;
-        """
+        """  # Joins players (for name) with standings (for win record)
     cur.execute(query)
     standings = []
     for row in cur:
-        standings.append(row)
+        standings.append(row)  # Populate a list of standings tuples
     conn.close()
     return standings
 
@@ -104,13 +104,13 @@ def reportMatch(winner, loser):
     conn = connect()
     cur = conn.cursor()
     cur.execute("INSERT INTO matches (winner, loser) "
-                "VALUES (%s,%s);", (winner, loser))
+                "VALUES (%s,%s);", (winner, loser))  # Record results of match
     cur.execute("UPDATE standings "
                 "SET wins=wins + 1 "
-                "WHERE id = %s;", (winner,))
+                "WHERE id = %s;", (winner,))  # Update winner in standings
     cur.execute("UPDATE standings "
                 "SET matches = matches + 1 "
-                "WHERE id = %s or id = %s;", (winner, loser))
+                "WHERE id = %s or id = %s;", (winner, loser))  # Update matches
     conn.commit()
     conn.close()
 
@@ -135,13 +135,16 @@ def swissPairings():
     cur.execute("select players.id, players.name "
                 "FROM players join standings "
                 "ON players.id = standings.id "
-                "ORDER BY wins desc;")
+                "ORDER BY wins desc;")  # Sort players by wins
     rows = []
     for row in cur:
-        rows.append(row[0])
-        rows.append(row[1])
+        rows.append(row[0])  # Append list with player id
+        rows.append(row[1])  # Append list with player name
+
+    # Iterate over every four items in rows list
+    # Creates a tuple of every four items
     iteration = iter(rows)
     results = zip(iteration, iteration, iteration, iteration)
+
     conn.close()
-    print results
     return results
