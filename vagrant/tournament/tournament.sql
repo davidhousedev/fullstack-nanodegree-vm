@@ -8,7 +8,8 @@
 
 CREATE DATABASE tournament; -- Creates database
 
-\c tournament; -- Connect to database
+/* Connect to Database */
+\c tournament;
 
 /* Create table for storing players by their full names */
 CREATE TABLE players (
